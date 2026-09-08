@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.datasets import load_digits
 
 digits = load_digits()
-x = digits.data
+X = digits.data
 y = digits.target
 
 
@@ -30,6 +30,59 @@ def forward(X, w1, b1, w2, b2):
     return a2
 
 
-output = forward(x, w1, b1, w2, b2)
+output = forward(X, w1, b1, w2, b2)
 print(output.shape)
 print(output[0])
+
+
+def cross_entropy_loss(probs, y):
+    n = probs.shape[0]
+    correct_probs = probs[np.arange(n), y]
+    loss = -np.mean(np.log(correct_probs))
+    return loss
+
+
+loss = cross_entropy_loss(output, y)
+print(loss)
+
+
+def one_hot(y, num_classes=10):
+    n = y.shape[0]
+    Y = np.zeros((n, num_classes))
+    Y[np.arange(n), y] = 1
+    return Y
+
+
+def forward(X, W1, b1, W2, b2):
+    z1 = X @ W1 + b1
+    a1 = relu(z1)
+    z2 = a1 @ W2 + b2
+    a2 = softmax(z2)
+    return a1, a2
+
+
+a1, a2 = forward(X, w1, b1, w2, b2)
+
+Y_onehot = one_hot(y)
+dz2 = (a2 - Y_onehot) / a2.shape[0]
+
+dW2 = a1.T @ dz2
+db2 = np.sum(dz2, axis=0)
+
+print(dW2.shape)
+print(db2.shape)
+
+da1 = dz2 @ w2.T
+
+dz1 = da1 * (a1 > 0)
+dW1 = X.T @ dz1
+db1 = np.sum(dz1, axis=0)
+
+da1 = dz2 @ w2.T
+dz1 = da1 * (a1 > 0)
+
+dW1 = X.T @ dz1
+db1 = np.sum(dz1, axis=0)
+
+print(dW1.shape)
+print(db1.shape)
